@@ -1,0 +1,66 @@
+input {
+/*    border-style: none; */
+}
+
+.choice {
+    margin-left: 0.5em;
+}
+
+.numericBad,
+.numeric {
+    width: 6em;
+}
+
+.numericBad {
+    color: red;
+}
+
+.numeric {
+    text-align: right;
+}
+
+div.calculator {
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+}
+div.title {
+    font-size: 125%;
+    border-style: solid;
+    border-top-width: 0px;
+    border-bottom-width: 1px;
+    border-left-width: 0px;
+    border-right-width: 0px;
+    border-color: #320080; 
+    text-align: center;
+    margin-bottom: 0.25em;
+}
+table {
+    margin-top: 0.5em;
+}
+
+table {
+    margin-top: 0.5em;
+}
+
+div.label,
+th {
+    font-weight: bold;
+    text-align: left;
+}
+
+div#info {
+    display: none;
+}
+
+div#bottom {
+    width: 8em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+img#logo {
+    width: 8em;
+    height: 2.5em;
+    margin-top: 3em;
+}
