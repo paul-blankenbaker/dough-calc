@@ -49,18 +49,51 @@ th {
     text-align: left;
 }
 
+
+div.label, table.formula {
+    margin-top: 1.5em;
+}
+
 div#info {
     display: none;
 }
 
 div#bottom {
-    width: 8em;
+    width: 4em;
     margin-left: auto;
     margin-right: auto;
 }
 
 img#logo {
-    width: 8em;
-    height: 2.5em;
+    width: 4em;
+    height: 1.25em;
     margin-top: 3em;
+}
+
+tr.actions {
+    font-size: 75%;
+    margin-top: 0.5em;
+    font-weight: bold;
+}
+
+a.preset {
+    padding-right: 0.75em;
+}
+
+@media print {
+    input {
+        border-style: none;
+    }
+    th {
+        border-bottom: solid;
+        border-width: 1px;
+    }
+    th.formulaLabel {
+        border-bottom: none;
+    }
+    
+    img#logo,
+    tr.actions {
+        display: none;
+    }
 }

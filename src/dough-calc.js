@@ -1,13 +1,32 @@
+/**
+ * Constants used throughout the application.
+ */
+
+// Bump version number if you change the format of the JSON settings
+// such that old version are no longer compatible
 const VERSION = 1;
-const PRECISION = 1;
+
+// Precision (number of digits after decimal point)
+const PRECISION_LO = 1;
+const PRECISION_HI = 2;
+
+// Used to convert from ounces to grams
+// G = OZ * G_PER_OZ
+// OZ = G / G_PER_OZ
+const G_PER_OZ = 28.3495;
+
+// Index of unit choice
 const UNIT_G = 0;
 const UNIT_OZ = 1;
-const G_PER_OZ = 28.3495;
 const UNITS = [ "g", "oz" ];
+
+// Conversion tables to convert to other unit for a given choice index
 const TO_G = [ 1.0, G_PER_OZ ];
 const TO_OZ = [ 1.0 / G_PER_OZ, 1.0 ];
 
+// Factory defaults for a simple straight dough recipe
 const defaults = {
+  "title": "Straight Bread Dough",
   "version": VERSION,
   "units": 0,
   "totalMass": 1000,
@@ -23,9 +42,48 @@ const defaults = {
   ]
 }
 
+const pate = {
+  "title": "P\u00E2te Ferment\u00e9e Mix",
+  "version": VERSION,
+  "units": 0,
+  "totalMass": 1000,
+  "formula": [
+    { "name": "Flour", "pct": 100.0, "locked": false },
+    { "name": "Salt", "pct": 3.0 },
+    { "name": "Yeast", "pct": 0.60 },
+    { "name": "Water", "pct": 68.0 },
+    { "name": "P\u00E2te Ferment\u00e9e", "pct": 100.0 }
+  ]
+}
+
+const wheat = {
+  "title": "Whole Grain",
+  "version": VERSION,
+  "units": 0,
+  "totalMass": 1000,
+  "formula": [
+    { "name": "Bread Flour", "pct": 90.0, "locked": false },
+    { "name": "Wheat/Rye/Etc", "pct": 10.0, "locked": false },
+    { "name": "Salt", "pct": 2.0 },
+    { "name": "Yeast", "pct": 0.70 },
+    { "name": "Water", "pct": 72.0 }
+  ]
+}
+
+// Table of preset recipes for quick select
+const presets = [ defaults, wheat, pate ];
+
+// Current user settings
 let userVals = defaults;
+
+// Used internally to keep track of the UI widgets
 let ui = { };
 
+// Spins through indredients list to sum up the percent column
+//
+// ingredients - Array of ingredients (each item must have "pct" attribute).
+//
+// return Sum of the percent column.
 function getTotalPct(ingredients) {
   let totalPct = 0;
   for (var i in ingredients) {
@@ -35,18 +93,21 @@ function getTotalPct(ingredients) {
   return totalPct;
 }
 
+// Returns the value of the total mass input in grams.
 function getTotalMassG() {
   var totalMass = parseFloat(userVals["totalMass"]);
   var convFactor = TO_G[userVals["units"]];
   return totalMass * convFactor;
 }
 
+// Returns the value of the total mass input in ounces.
 function getTotalMassOz() {
   var totalMass = parseFloat(userVals["totalMass"]);
   var convFactor = TO_OZ[userVals["units"]];
   return totalMass * convFactor;
 }
 
+// Updates the grams and ounces columns based on current mass setting.
 function updateForTotalMass() {
   let totalMassG = getTotalMassG();
   let totalMassOz = getTotalMassOz();
@@ -62,6 +123,13 @@ function updateForTotalMass() {
 }
 
 
+// Creates an DOM widget.
+//
+// htmlType - Name of HTML entity (like "div").
+// className - Optional setting for "class" attribute.
+// textContent - Optional text to append to the widget.
+//
+// Return new DOM node to insert into the document.
 function createWidget(htmlType, className, textContent) {
   let widget = document.createElement(htmlType);
   if (className !== undefined) {
@@ -73,6 +141,11 @@ function createWidget(htmlType, className, textContent) {
   return widget;
 }
 
+// Checks a numeric input field to determine if value is valid.
+//
+// inFld - DOM input field to get user value from.
+//
+// Return numeric value of text field or NaN if invalid number.
 function checkNumericField(inFld) {
   let val = parseFloat(inFld.value);
   if (isNaN(val)) {
@@ -83,6 +156,9 @@ function checkNumericField(inFld) {
   return val;
 }
 
+// Input handler when user modifies the total mass field.
+//
+// inField - The total mass input field.
 function totalMassChanged(inFld) {
   let val = checkNumericField(inFld);
   if (isNaN(val)) {
@@ -94,6 +170,10 @@ function totalMassChanged(inFld) {
   saveSettings();
 }
 
+// Updates a numeric input field with a new value.
+//
+// widget - A DOM input field to set new text value on.
+// val - Numeric value to format and then apply to the input field.
 function updateNumericInput(widget, val) {
   if (widget === undefined) {
     return;
@@ -104,6 +184,8 @@ function updateNumericInput(widget, val) {
   return widget;
 }
 
+// Transfers all values from the internal settings back into
+// the user interface.
 function updateUi() {
   updateNumericInput(ui["totalMass"], userVals["totalMass"]);
   let unitChoice = userVals["units"];
@@ -119,11 +201,37 @@ function updateUi() {
     updateNumericInput(widget["oz"], ing["oz"]);
     updateNumericInput(widget["pct"], ing["pct"]);
   }
+
+  let title = userVals["title"];
+  if (title !== undefined) {
+    replaceText("title", title);
+    replaceText(ui["title"], title);
+  }
 }
 
+// Replaces CDATA (text) of specific DOM node
+//
+// node - DOM node or String ID of DOM node.
+// text - New text to insert
+function replaceText(node, title) {
+  if (typeof node === typeof "") {
+    node = document.getElementById(node);
+  }
+  if (node !== undefined) {
+    node.replaceChild(document.createTextNode(title), node.firstChild);
+  }
+}
+
+// Creates an input field used to enter numeric values in.
+//
+// val - Initial value to put in input field.
+// callback - Optional callback handler to invoke when user adjusts value.
+// precision - Optional numeric precision (how many places after decimal point).
+//
+// Return a DOM input field initialized as specified.
 function createNumericInput(val, callback, precision) {
   if (precision == undefined) {
-    precision = PRECISION;
+    precision = PRECISION_LO;
   }
   let sval = parseFloat(val).toFixed(precision);
   let widget = createWidget("input", "numeric");
@@ -134,11 +242,41 @@ function createNumericInput(val, callback, precision) {
   return widget;
 }
 
+// Creates a preset widget that user can click on to quickly load one
+// of the pre-defined recipes
+//
+// idx - Index of factory preset in the "presets" array.
+function createPreset(idx) {
+  let widget = createWidget("a", "preset", "" + idx);
+  widget.href = "#";
+  let settings = presets[idx];
+  widget.title = "Load formula for: " + settings["title"];
+  widget.onclick = function(event) {
+    // Set user settings to preset settings and re-create UI
+    userVals = settings;
+    createUi()
+  };
+  return widget;
+}
+
+// Adds a vertically labeled UI widget.
+//
+// widget - The DOM widget to add to.
+// label - The text label to appear above the input widget (String).
+// field - The input widget.
 function addInput(widget, label, field) {
   widget.appendChild(createWidget("div", "label", label));
   widget.appendChild(field);
 }
 
+// Update values proportionally for a change in weight/mass of an
+// ingredient.
+//
+// unit - The unit that the adjustment was made on (UNIT_G or UNIT_OZ).
+//
+// totalAdjRatio - How much of an adjustment was made (1.0 means no
+// adjustment, 0.5 means half of what it was, 2.0 means double what it
+// was).
 function updateWeight(unit, totalAdjRatio) {
   if (isFinite(totalAdjRatio)) {
     let totalMass = userVals["totalMass"];
@@ -147,26 +285,11 @@ function updateWeight(unit, totalAdjRatio) {
     updateUi();
     saveSettings();
   }
-  /*
-  let key = UNITS[unit];
-  let total = 0;
-  let ingredients = userVals["formula"];
-  for (var i in ingredients) {
-    let ing = ingredients[i];
-    total += ing[key];
-  }
-  if (userVals["units"] == UNIT_G) {
-    userVals["totalMass"] = total * TO_G[unit];
-  } else {
-    userVals["totalMass"] = total * TO_OZ[unit];
-  }
-  updateForTotalMass();
-  updateUi();
-  saveSettings();
-*/
 }
 
-// Change to values in grams on one of the ingredients
+// Handles event when user changes a value in the grams column.
+//
+// widget - The cell in the grams column that was adjusted.
 function gChange(widget) {
   let val = checkNumericField(widget);
   if (isNaN(val)) {
@@ -178,7 +301,9 @@ function gChange(widget) {
   updateWeight(UNIT_G, totalAdjRatio);
 }
 
-// Change to values in ounces on one of the ingredients
+// Handles event when user changes a value in the ounces column.
+//
+// widget - The cell in the ounces column that was adjusted.
 function ozChange(widget) {
   let val = checkNumericField(widget);
   if (isNaN(val)) {
@@ -190,7 +315,9 @@ function ozChange(widget) {
   updateWeight(UNIT_G, totalAdjRatio);
 }
 
-// Change to values in percent on one of the ingredients
+// Handles event when user changes a value in the percent column.
+//
+// widget - The cell in the percent column that was adjusted.
 function pctChange(widget) {
   let row = widget.row;
   let ing = userVals["formula"][row];
@@ -200,6 +327,9 @@ function pctChange(widget) {
   saveSettings();
 }
 
+// Handles event when user changes an ingredient label.
+//
+// widget - The cell in the label column that was adjusted.
 function labelChange(widget) {
   let row = widget.row;
   let ing = userVals["formula"][row];
@@ -207,6 +337,14 @@ function labelChange(widget) {
   saveSettings();
 }
 
+// Looks for user changes on an input field (when to apply changes)
+//
+// Currently we look for the user moving into our out of a field (a blur event) or when the user presses the "Enter" key on an input field.
+//
+// widget - The DOM input field to monitor.
+//
+// callback - The method to call when a significant event occurs - we
+// will pass 'widget' to the callback handler.
 function addChangeHandler(widget, callback) {
   if (callback !== undefined) {
     widget.onblur = function(event) {
@@ -224,6 +362,10 @@ function addChangeHandler(widget, callback) {
   }
 }
 
+// Creates a full DOM tr for a single ingredient entry in a recipe.
+//
+// ing - A single row from the array of "formulas" in the settings
+// (must have a "name", "pct", "g" and "oz" attribute set).
 function createFormulaRow(ing) {
   var widget = createWidget("tr");
   var label = ing["name"];
@@ -245,10 +387,10 @@ function createFormulaRow(ing) {
   for (var j in vals) {
     let idx = vals[j];
     let val = parseFloat(ing[idx]);
-    let valStr = isNaN(val) ? "" : val.toFixed(PRECISION);
+    let valStr = isNaN(val) ? "" : val.toFixed(PRECISION_LO);
     let td = createWidget("td");
     widget.appendChild(td);
-    let ui = createNumericInput(valStr, callbacks[j], (j >= 1) ? 2 : 1);
+    let ui = createNumericInput(valStr, callbacks[j], (j >= 1) ? PRECISION_HI : PRECISION_LO);
     ui.idx = idx;
     ui.row = row;
     flds[idx] = ui;
@@ -263,6 +405,9 @@ function createFormulaRow(ing) {
   return widget;
 }
 
+// Creates the table of ingredients based on the current user settings.
+//
+// A DOM widget that can be inserted into the document.
 function createFormulaWidget(ingredients) {
   let widget = createWidget("table", "formula");
   let thead = createWidget("thead")
@@ -282,9 +427,26 @@ function createFormulaWidget(ingredients) {
     let ing = ingredients[i];
     tbody.appendChild(createFormulaRow(ing));
   }
+
+  // Add row at bottom of table with action links
+  let actions = createWidget("tr", "actions");
+  tbody.appendChild(actions);
+  let presetsWidget = createWidget("td", "actions");
+  actions.appendChild(presetsWidget);
+
+  // Add some preset formula action links
+  presetsWidget.colspan = 2;
+  for (var i = 0; i < presets.length; i++) {
+    presetsWidget.appendChild(createPreset(i));
+  }
+  
   return widget;
 }
 
+// Creates a DOM input field as a radio button with a specific callback.
+//
+// selected - Pass true if radio button should be selected, false if not.
+// callback - Optional callback when user clicks on radio button.
 function createRadioButton(selected, callback) {
   let widget = createWidget("input", "choice");
   widget.checked = selected;
@@ -295,6 +457,9 @@ function createRadioButton(selected, callback) {
   return widget;
 }
 
+// Changes the default units between grams and ounces.
+//
+// units - The new units to display total mass in (UNIT_G or UNIT_OZ).
 function changeUnits(units) {
   if (userVals["units"] !== units) {
     if (units == UNIT_G) {
@@ -308,11 +473,15 @@ function changeUnits(units) {
   updateUi();
   saveSettings();
 }
-  
+
+// Creates a full UI widget based on the current user settings (userVals).
+//
+// Returns the entire user interface as a single DOM widget to add to the table.
 function createUiWidget() {
   ui = { "formula": [ ] };
   let widget = createWidget("div", "calculator");
   let title = createWidget("div", "title", "Dough Calculator");
+  ui["title"] = title;
   widget.appendChild(title);
 
   let key = "totalMass";
@@ -342,7 +511,6 @@ function createUiWidget() {
   
   addInput(widget, "Total Mass", massUi);
 
-  widget
   let g = createWidget("input", "selector");
   g.checked = true;
 
@@ -355,17 +523,21 @@ function createUiWidget() {
   return widget;
 }
 
+// Creates a new user interface widget and replaces the old one in the document.
 function createUi() {
   var old = document.getElementById("ui");
   var p = old.parentNode;
   p.replaceChild(createUiWidget(), old);
 }
 
+// Saves the current recipe so it will be the default the next time
+// the page is loaded
 function saveSettings() {
   let settings = JSON.stringify(userVals);
   localStorage.setItem("doughCalc", settings);
 }
 
+// Loads initial values when document is first loaded.
 function loadValues() {
   try {
     userVals = JSON.parse(localStorage.getItem("doughCalc"));
