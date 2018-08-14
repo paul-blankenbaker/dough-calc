@@ -130,6 +130,12 @@ link for a tool tip describing the recipe.
 
 There are some action links available below the table on the right side.
 
+### "l" Link
+
+This action will open a link with the current recipe encoded in the
+URL. This allows a specific recipe to be book marked, copy/pasted or
+embedded into an HTML document.
+
 ### "+" Add Row
 
 Clicking on this action adds a new row to the end of the table.

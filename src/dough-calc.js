@@ -203,6 +203,10 @@ function updateUi() {
     replaceText("title", title);
     replaceText(ui["title"], title);
   }
+
+  // Update action link for new recipe
+  ui["link"].href = window.location.pathname + "?settings="
+    + encodeURIComponent(JSON.stringify(userVals));
 }
 
 // Replaces CDATA (text) of specific DOM node
@@ -263,7 +267,9 @@ function createAction(letter, title, clickHandler) {
   let widget = createWidget("a", "action", letter);
   widget.href = "#";
   widget.title = title;
-  widget.onclick = clickHandler;
+  if (clickHandler !== undefined) {
+    widget.onclick = clickHandler;
+  }
   return widget;
 }
 
@@ -510,6 +516,12 @@ function createFormulaWidget(ingredients) {
   let actionsWidget = createWidget("td", "actionsRight");
   actionsWidget.colSpan = 2;
   actions.appendChild(actionsWidget);
+
+  let link = createAction("l", "Open link with current recipe - use as bookmark or right click and copy link");
+  ui["link"] = link;
+  link.target = "_blank";
+  actionsWidget.appendChild(link);
+  
   let ins = createAction("+", "Add a new row to the end of the table", addRow);
   actionsWidget.appendChild(ins);
   let del = createAction("-", "Remove the last row in the table", delRow);
@@ -612,8 +624,40 @@ function saveSettings() {
   localStorage.setItem("doughCalc", settings);
 }
 
+// Function to parse the search string from a URL (?KEY0=VAL&KEY1=VAL&...).
+//
+// From: https://stackoverflow.com/questions/523266/how-can-i-get-a-specific-parameter-from-location-search
+//
+// str - The query string to parse (typically window.location.search).
+function parseQueryString(str) {
+  if (str === undefined) {
+    str = window.location.search;
+  }
+  var objURL = {};
+
+  str.replace(
+    new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+    function( $0, $1, $2, $3 ){
+      objURL[ $1 ] = $3;
+    }
+  );
+  return objURL;
+}
+
 // Loads initial values when document is first loaded.
 function loadValues() {
+
+  // If settings, passed in URL, prefer those
+  try {
+    let params = parseQueryString(window.location.search);
+    userVals = JSON.parse(decodeURIComponent(params["settings"]));
+    if (userVals.version == VERSION) {
+      createUi();
+      return;
+    }
+  } catch (ignore) {
+  }
+  
   try {
     userVals = JSON.parse(localStorage.getItem("doughCalc"));
     if (userVals.version != VERSION) {
