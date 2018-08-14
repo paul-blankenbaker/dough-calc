@@ -35,10 +35,6 @@ const defaults = {
     { "name": "Salt", "pct": 2.0 },
     { "name": "Yeast", "pct": 0.65 },
     { "name": "Water", "pct": 68.0 },
-    { "name": "P\u00E2te Ferment\u00e9e", "pct": 0.0 },
-    { "name": "More 2", "pct": 0.0 },
-    { "name": "More 3", "pct": 0.0 },
-    { "name": "More 4", "pct": 0.0 }
   ]
 }
 
@@ -259,6 +255,18 @@ function createPreset(idx) {
   return widget;
 }
 
+// Creates an action widget that user can click on to cause something to happen.//
+// letter - The text to display (what user will click on).
+// title - Tooltip describing what action does.
+// clickHandler - Function to handle click event.
+function createAction(letter, title, clickHandler) {
+  let widget = createWidget("a", "action", letter);
+  widget.href = "#";
+  widget.title = title;
+  widget.onclick = clickHandler;
+  return widget;
+}
+
 // Adds a vertically labeled UI widget.
 //
 // widget - The DOM widget to add to.
@@ -331,9 +339,25 @@ function pctChange(widget) {
 //
 // widget - The cell in the label column that was adjusted.
 function labelChange(widget) {
+  let label = widget.value;
   let row = widget.row;
+  
+  switch (label) {
+  case "+":
+    widget.removeAttribute("onblur");
+    widget.blurePrevented = true;
+    addRow(row);
+    return;
+  case "-":
+    // Disable callback on focus change before removing row
+    widget.removeAttribute("onblur");
+    widget.blurPrevented = true;
+    delRow(row);
+    return;
+  }
+  
   let ing = userVals["formula"][row];
-  ing["name"] = widget.value;
+  ing["name"] = label;
   saveSettings();
 }
 
@@ -348,6 +372,9 @@ function labelChange(widget) {
 function addChangeHandler(widget, callback) {
   if (callback !== undefined) {
     widget.onblur = function(event) {
+      if (event.defaultPrevented || this.blurPrevented) {
+        return;
+      }
       callback(widget);
     };
     widget.addEventListener('keyup', function(event) {
@@ -405,6 +432,46 @@ function createFormulaRow(ing) {
   return widget;
 }
 
+// Adds/inserts row into table.
+//
+// idx - Numeric index in range of [0, list.length] where you want the
+// new row to appear. Omitting, passing non-numeric value or value out
+// of range results in adding to end of table (this method can be an
+// onclick handler).
+function addRow(idx) {
+  let row = parseInt(idx);
+  let list = userVals["formula"];
+  let rowOk = (row >= 0) && (row < list.length);
+  let newRow = { "name": "", "pct": 0 }; 
+  if (!rowOk) {
+    list.push(newRow);
+  } else if (row == 0) {
+    list.unshift(newRow);
+  } else {
+    list.splice(row, 0, newRow);
+  }
+  updateForTotalMass();
+  createUi();
+}
+
+// Removes row from table.
+//
+// idx - Numeric index in range of [0, list.length - 1] of the row to
+// remove.  Omitting, passing non-numeric value or value out of range
+// results in removing last row table (this method can be an onclick
+// handler).
+function delRow(idx) {
+  let row = parseInt(idx);
+  let list = userVals["formula"];
+  let rowOk = (row >= 0) && (row < list.length);
+  if (!rowOk) {
+    row = list.length - 1;
+  }
+  list.splice(row, 1);
+  updateForTotalMass();
+  createUi();
+}
+
 // Creates the table of ingredients based on the current user settings.
 //
 // A DOM widget that can be inserted into the document.
@@ -432,13 +499,21 @@ function createFormulaWidget(ingredients) {
   let actions = createWidget("tr", "actions");
   tbody.appendChild(actions);
   let presetsWidget = createWidget("td", "actions");
+  presetsWidget.colSpan = 2;
   actions.appendChild(presetsWidget);
 
   // Add some preset formula action links
-  presetsWidget.colspan = 2;
   for (var i = 0; i < presets.length; i++) {
     presetsWidget.appendChild(createPreset(i));
   }
+
+  let actionsWidget = createWidget("td", "actionsRight");
+  actionsWidget.colSpan = 2;
+  actions.appendChild(actionsWidget);
+  let ins = createAction("+", "Add a new row to the end of the table", addRow);
+  actionsWidget.appendChild(ins);
+  let del = createAction("-", "Remove the last row in the table", delRow);
+  actionsWidget.appendChild(del);
   
   return widget;
 }

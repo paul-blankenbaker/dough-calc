@@ -76,8 +76,18 @@ tr.actions {
     font-weight: bold;
 }
 
-a.preset {
+td.actionsRight {
+    text-align: right;
+}
+
+.preset {
     padding-right: 0.75em;
+    text-decoration: none;
+}
+
+.action {
+    padding-left: 0.75em;
+    text-decoration: none;
 }
 
 @media print {

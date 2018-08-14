@@ -119,6 +119,33 @@ This is not a common use case, but if you only had 500 g of flour left
 to work with, it will figure out the values for the rest of your
 ingredients for you.
 
+## Presets
+
+There are some "preset" links available below the table on the right
+side labeled as numeric digits ("0", "1", ...). Clicking on a preset
+link will load in one of the default recipes. Hover over the a preset
+link for a tool tip describing the recipe.
+
+## Actions
+
+There are some action links available below the table on the right side.
+
+### "+" Add Row
+
+Clicking on this action adds a new row to the end of the table.
+
+**Easter Egg** Changing the label of a row to "+" can be used to
+insert a row in the table. The row will be inserted above and the
+original label will be restored.
+
+### "-" Remove Row
+
+Clicking on this action removes the last row from the table. There is
+no confirmation - you click it, it's gone!
+
+**Easter Egg** Changing the label of a row to "-" can be used to
+delete a specific row.
+
 # Modifying The Tool
 
 This is a rather simple tool with the following design goals:
