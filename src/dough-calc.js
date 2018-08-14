@@ -351,7 +351,7 @@ function labelChange(widget) {
   switch (label) {
   case "+":
     widget.removeAttribute("onblur");
-    widget.blurePrevented = true;
+    widget.blurPrevented = true;
     addRow(row);
     return;
   case "-":
