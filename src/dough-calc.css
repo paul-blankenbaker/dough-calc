@@ -24,6 +24,8 @@ div.calculator {
     margin-left: auto;
     margin-right: auto;
 }
+
+input.title,
 div.title {
     font-size: 125%;
     border-style: solid;
@@ -34,6 +36,9 @@ div.title {
     border-color: #320080; 
     text-align: center;
     margin-bottom: 0.25em;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
 }
 table {
     margin-top: 0.5em;
@@ -52,6 +57,10 @@ th {
 
 div.label, table.formula {
     margin-top: 1.5em;
+}
+
+th.formulaRight {
+    text-align: right;
 }
 
 div#info {

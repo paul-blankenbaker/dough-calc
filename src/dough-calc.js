@@ -66,8 +66,21 @@ const wheat = {
   ]
 }
 
+const pizza = {
+  "title": "Pizza Dough",
+  "version": VERSION,
+  "units": 0,
+  "totalMass": 500,
+  "formula": [
+    { "name": "Bread Flour", "pct": 100.0, "locked": false },
+    { "name": "Salt", "pct": 2.0 },
+    { "name": "Yeast", "pct": 1.5 },
+    { "name": "Water", "pct": 65.0 }
+  ]
+}
+
 // Table of preset recipes for quick select
-const presets = [ defaults, wheat, pate ];
+const presets = [ defaults, wheat, pate, pizza ];
 
 // Current user settings
 let userVals = defaults;
@@ -132,7 +145,11 @@ function createWidget(htmlType, className, textContent) {
     widget.className = className;
   }
   if (textContent !== undefined) {
-    widget.appendChild(document.createTextNode(textContent));
+    if (htmlType == "input") {
+      widget.value = textContent;
+    } else {
+      widget.appendChild(document.createTextNode(textContent));
+    }
   }
   return widget;
 }
@@ -201,7 +218,7 @@ function updateUi() {
   let title = userVals["title"];
   if (title !== undefined) {
     replaceText("title", title);
-    replaceText(ui["title"], title);
+    ui["title"].value = title;
   }
 
   // Update action link for new recipe
@@ -338,6 +355,19 @@ function pctChange(widget) {
   ing["pct"] = parseFloat(widget.value);
   updateForTotalMass();
   updateUi();
+  saveSettings();
+}
+
+// Handles event when user changes the main title.
+//
+// widget - The DOM input node containing the title.
+function titleChange(widget) {
+  let title = widget.value;
+  // Save new value in settings
+  userVals["title"] = title;
+  // Update document <title> node
+  replaceText("title", title);
+  // Save new settings
   saveSettings();
 }
 
@@ -489,7 +519,8 @@ function createFormulaWidget(ingredients) {
   thead.appendChild(tr);
   let headings = [ "Ingredients", "Mass (g)", "Wt (oz)", "Percent" ];
   for (var i in headings) {
-    tr.appendChild(createWidget("th", "formula", headings[i]));
+    var className = (i == 0) ? "formula" : "formulaRight";
+    tr.appendChild(createWidget("th", className, headings[i]));
   }
   
   let tbody = createWidget("tbody");
@@ -567,7 +598,10 @@ function changeUnits(units) {
 function createUiWidget() {
   ui = { "formula": [ ] };
   let widget = createWidget("div", "calculator");
-  let title = createWidget("div", "title", "Dough Calculator");
+  
+  let title = createWidget("input", "title", "Dough Calculator");
+  title.title = "Click to edit/change the title";
+  addChangeHandler(title, titleChange);
   ui["title"] = title;
   widget.appendChild(title);
 
