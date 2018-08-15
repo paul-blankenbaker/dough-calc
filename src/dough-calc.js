@@ -44,11 +44,11 @@ const pate = {
   "units": 0,
   "totalMass": 1000,
   "formula": [
+    { "name": "P\u00E2te Ferment\u00e9e", "pct": 67.0 },
     { "name": "Flour", "pct": 100.0, "locked": false },
-    { "name": "Salt", "pct": 3.0 },
+    { "name": "Salt", "pct": 2.0 },
     { "name": "Yeast", "pct": 0.60 },
-    { "name": "Water", "pct": 68.0 },
-    { "name": "P\u00E2te Ferment\u00e9e", "pct": 100.0 }
+    { "name": "Water", "pct": 67.0 }
   ]
 }
 
